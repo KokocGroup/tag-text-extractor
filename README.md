@@ -7,7 +7,7 @@ tag-text-extractor
 
 
 ```
-from tag_text_extractor import extract_tag_texts
+from tag_text_extractor.tag_text_extractor import extract_tag_texts
 data = extract_tag_texts("<html><body>...</body></html>")
 
 data.keys()
