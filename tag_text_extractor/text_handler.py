@@ -141,8 +141,17 @@ class NewTextHandler(ContentHandler):
 
         prev_tag = self.current_tag
         if prev_tag:
-            self.tags[prev_tag]['texts'][-1] += u' ' + ended_content
-            self.tags[prev_tag]['word_count'] += self.get_words_count(ended_content)
+            if prev_tag == 'body':
+                words_count = self.get_words_count(ended_content)
+                new_tag = 'text_fragment' if words_count < 50 else 'plain_text'
+                self.tags[new_tag]['texts'].append(ended_content)
+                self.tags[new_tag]['word_count'] += words_count
+
+                self.tags['body']['texts'].append(ended_content)
+                self.tags['body']['word_count'] += words_count
+            else:
+                self.tags[prev_tag]['texts'][-1] += u' ' + ended_content
+                self.tags[prev_tag]['word_count'] += self.get_words_count(ended_content)
 
     def characters(self, content):
         content = content.strip()
@@ -158,20 +167,17 @@ class NewTextHandler(ContentHandler):
 
     @property
     def result(self):
-        result_tags = ['title', 'h1', 'a', 'body', 'plain_text', 'text_fragment']
-        result = defaultdict(lambda: {'texts': [], 'word_count': 0})
-        for tag in self.tags:
-            if tag in result_tags:
-                if tag == 'body':
-                    for content in self.tags['body']['texts']:
-                        words_count = self.get_words_count(content)
-                        new_tag = 'text_fragment' if words_count < 50 else 'plain_text'
+        tags = ['title', 'h1', 'a', 'body', 'plain_text', 'text_fragment']
+        result = {}
+        for tag in tags:
+            if tag in self.tags:
+                value = self.tags[tag]
+                result[tag] = {
+                    'texts': filter(bool, map(normalize, value['texts'])),
+                    'word_count': value['word_count']
+                }
 
-                        result[new_tag]['texts'].append(content)
-                        result[new_tag]['word_count'] += words_count
-                result[tag] = self.tags[tag]
-        return {tag: {'texts': map(normalize, values['texts']), 'word_count': values['word_count']}
-                for tag, values in result.iteritems()}
+        return result
 
 
 class ErrorHandler(object):
