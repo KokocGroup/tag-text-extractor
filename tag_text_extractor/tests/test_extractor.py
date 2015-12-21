@@ -45,6 +45,9 @@ class ExtractorTestCase(BaseTestCase):
         data = extract("<html><body><p>Узнать о нашем магазине вы можете из нашей брошюры а так же нашего сайта Узнать о нашем магазине вы можете из нашей брошюры а так же нашего сайта Узнать о нашем магазине вы можете из нашей брошюры а так же нашего сайта Узнать о нашем магазине вы можете из нашей брошюры а так же нашего сайта Узнать о нашем магазине вы можете из нашей брошюры а так же нашего сайта Узнать о нашем магазине вы можете из нашей брошюры а так же нашего сайта<p></body></html>")
         self.assertEqual(data['plain_text']['word_count'], 84)
 
+        data = extract("<html><body><p>Узнать о нашем магазине</p><p> вы можете из нашей брошюры а так же нашего сайта<p></body></html>")
+        self.assertEquals(len(data['text_fragment']['texts']), 2)
+
     def test_mail(self):
         data = extract(self.get_data('example2.html'))
         self.assertGreater(data['body']['word_count'], 0)

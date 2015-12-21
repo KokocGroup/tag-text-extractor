@@ -121,7 +121,7 @@ class TextHandler(ContentHandler):
 
 class NewTextHandler(ContentHandler):
     whitespace_re = re.compile(ur'[\S]+', re.U | re.M)
-    allowed_tags = ['title', 'h1', 'a', 'body']
+    allowed_tags = ['title', 'h1', 'a', 'body', 'p', 'div']
 
     def __init__(self):
         """
@@ -174,19 +174,18 @@ class NewTextHandler(ContentHandler):
     def result(self):
         tags = ['title', 'h1', 'a', 'body', 'plain_text', 'text_fragment']
         result = {tag: {'texts': [], 'word_count': 0} for tag in tags}
-        for tag in self.tags:
-            value = self.tags[tag]
-            result[tag] = {
-                'texts': filter(bool, map(normalize, value['texts'])),
-                'word_count': value['word_count']
-            }
-
-        if 'body' in result:
-            for text in result['body']['texts']:
-                words_count = self.get_words_count(text)
-                new_tag = 'text_fragment' if words_count < 50 else 'plain_text'
-                result[new_tag]['texts'].append(text)
-                result[new_tag]['word_count'] += words_count
+        for tag, value in self.tags.iteritems():
+            if tag in (u'p', u'div'):
+                for text in filter(bool, map(normalize, value['texts'])):
+                    word_count = self.get_words_count(text)
+                    new_tag = 'plain_text' if word_count > 50 else 'text_fragment'
+                    result[new_tag]['texts'].append(text)
+                    result[new_tag]['word_count'] += word_count
+            else:
+                result[tag] = {
+                    'texts': filter(bool, map(normalize, value['texts'])),
+                    'word_count': value['word_count']
+                }
 
         return result
 
