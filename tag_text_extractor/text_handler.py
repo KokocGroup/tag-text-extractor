@@ -121,6 +121,7 @@ class TextHandler(ContentHandler):
 
 class NewTextHandler(ContentHandler):
     whitespace_re = re.compile(ur'[\S]+', re.U | re.M)
+    allowed_tags = ['title', 'h1', 'a', 'body']
 
     def __init__(self):
         """
@@ -132,31 +133,35 @@ class NewTextHandler(ContentHandler):
         self.path = []
 
     def startElement(self, name, attrs):
-        self.path.append(name.lower())
+        tag = name.lower()
+        if tag not in self.allowed_tags:
+            return
+
+        self.path.append(tag)
         self.tags[self.current_tag]['texts'].append(u'')
 
     def endElement(self, name):
+        tag = name.lower()
+        if tag not in self.allowed_tags:
+            return
+
         ended_tag = self.path.pop(-1)
         ended_content = self.tags[ended_tag]['texts'][-1]
+        words_count = self.get_words_count(ended_content)
 
         prev_tag = self.current_tag
         if prev_tag:
-            if prev_tag == 'body':
-                words_count = self.get_words_count(ended_content)
-                new_tag = 'text_fragment' if words_count < 50 else 'plain_text'
-                self.tags[new_tag]['texts'].append(ended_content)
-                self.tags[new_tag]['word_count'] += words_count
-
-                self.tags['body']['texts'].append(ended_content)
-                self.tags['body']['word_count'] += words_count
+            if ended_tag in [u'p', u'div']:
+                self.tags[prev_tag]['texts'].append(ended_content)
             else:
                 self.tags[prev_tag]['texts'][-1] += u' ' + ended_content
-                self.tags[prev_tag]['word_count'] += self.get_words_count(ended_content)
+            self.tags[prev_tag]['word_count'] += words_count
 
     def characters(self, content):
         content = content.strip()
-        self.tags[self.current_tag]['texts'][-1] += u' ' + content
-        self.tags[self.current_tag]['word_count'] += self.get_words_count(content)
+        if content:
+            self.tags[self.current_tag]['texts'][-1] += u' ' + content
+            self.tags[self.current_tag]['word_count'] += self.get_words_count(content)
 
     def get_words_count(self, content):
         return len(self.whitespace_re.findall(content))
@@ -168,14 +173,20 @@ class NewTextHandler(ContentHandler):
     @property
     def result(self):
         tags = ['title', 'h1', 'a', 'body', 'plain_text', 'text_fragment']
-        result = {}
-        for tag in tags:
-            if tag in self.tags:
-                value = self.tags[tag]
-                result[tag] = {
-                    'texts': filter(bool, map(normalize, value['texts'])),
-                    'word_count': value['word_count']
-                }
+        result = {tag: {'texts': [], 'word_count': 0} for tag in tags}
+        for tag in self.tags:
+            value = self.tags[tag]
+            result[tag] = {
+                'texts': filter(bool, map(normalize, value['texts'])),
+                'word_count': value['word_count']
+            }
+
+        if 'body' in result:
+            for text in result['body']['texts']:
+                words_count = self.get_words_count(text)
+                new_tag = 'text_fragment' if words_count < 50 else 'plain_text'
+                result[new_tag]['texts'].append(text)
+                result[new_tag]['word_count'] += words_count
 
         return result
 
