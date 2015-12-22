@@ -181,6 +181,8 @@ class NewTextHandler(ContentHandler):
                     new_tag = 'plain_text' if word_count > 50 else 'text_fragment'
                     result[new_tag]['texts'].append(text)
                     result[new_tag]['word_count'] += word_count
+                    result['body']['texts'].append(text)
+                    result['body']['word_count'] += word_count
             else:
                 result[tag] = {
                     'texts': filter(bool, map(normalize, value['texts'])),
