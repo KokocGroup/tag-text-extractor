@@ -146,7 +146,7 @@ class NewTextHandler(ContentHandler):
             return
 
         ended_tag = self.path.pop(-1)
-        ended_content = self.tags[ended_tag]['texts'][-1]
+        ended_content = self.tags[ended_tag]['texts'][-1].strip()
         words_count = self.get_words_count(ended_content)
 
         prev_tag = self.current_tag
@@ -154,7 +154,6 @@ class NewTextHandler(ContentHandler):
             if ended_tag in [u'p', u'div']:
                 self.tags[prev_tag]['texts'].append(ended_content)
             else:
-                ended_content = ended_content.strip()
                 if ended_content:
                     if self.tags[prev_tag]['texts']:
                         self.tags[prev_tag]['texts'][-1] += u' ' + ended_content
@@ -165,7 +164,10 @@ class NewTextHandler(ContentHandler):
     def characters(self, content):
         content = content.strip()
         if content:
-            self.tags[self.current_tag]['texts'][-1] += u' ' + content
+            if self.tags[self.current_tag]['texts']:
+                self.tags[self.current_tag]['texts'][-1] += u' ' + content
+            else:
+                self.tags[self.current_tag]['texts'].append(content)
             self.tags[self.current_tag]['word_count'] += self.get_words_count(content)
 
     def get_words_count(self, content):
