@@ -154,7 +154,9 @@ class NewTextHandler(ContentHandler):
             if ended_tag in [u'p', u'div']:
                 self.tags[prev_tag]['texts'].append(ended_content)
             else:
-                self.tags[prev_tag]['texts'][-1] += u' ' + ended_content
+                ended_content = ended_content.strip()
+                if ended_content:
+                    self.tags[prev_tag]['texts'][-1] += u' ' + ended_content
             self.tags[prev_tag]['word_count'] += words_count
 
     def characters(self, content):
