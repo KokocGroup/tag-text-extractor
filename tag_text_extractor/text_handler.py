@@ -156,7 +156,10 @@ class NewTextHandler(ContentHandler):
             else:
                 ended_content = ended_content.strip()
                 if ended_content:
-                    self.tags[prev_tag]['texts'][-1] += u' ' + ended_content
+                    if self.tags[prev_tag]['texts']:
+                        self.tags[prev_tag]['texts'][-1] += u' ' + ended_content
+                    else:
+                        self.tags[prev_tag]['texts'].append(ended_content)
             self.tags[prev_tag]['word_count'] += words_count
 
     def characters(self, content):
