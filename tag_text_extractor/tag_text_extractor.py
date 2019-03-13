@@ -45,12 +45,13 @@ def clean_html(html_content):
         tree = etree.parse(StringIO(html_content), parser)
         root = tree.getroot()
         if root is not None:
-            html = etree.tostring(root)
+            html = etree.tounicode(root)
         else:
             html = ""
     except Exception as e:
         logging.warning(e, exc_info=1)
         html = ""
+
     html = re.sub(u'<!DOCTYPE[^>]*>(?isu)', '', html)
     shtml = re.split(u'<html[^>]*>', html)
     html = '<html>' + shtml[1] if len(shtml) == 2 else html
