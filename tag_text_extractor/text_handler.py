@@ -103,20 +103,26 @@ class TextHandler(ContentHandler):
         self.add_content_to_result(tag, content)
 
     def add_content_to_result(self, tag, content):
-        if tag in self.result and content and len(content) <= 50:
-            self.result[tag]['texts'].append(content)
-            self.result[tag]['word_count'] += self._get_words_count(content)
+        if tag in self.result and content:
+            words = self._get_words(content)
+            if words:
+                self.result[tag]['texts'].append(' '.join(words))
+                self.result[tag]['word_count'] += len(words)
 
-    def _get_words_count(self, text):
+    def _get_words(self, text):
         text = unicode(text.lower())
         text = self.non_alpha_num_re.sub(' ', text)
         text = self.replace_e_re.sub(u'е', text)
 
-        counter = 0
+        words = []
         for word in self.whitespace_re.findall(text):
-            if word not in self.stopwords:
-                counter += 1
-        return counter
+            word = word.strip()
+            if word and len(word) <= 50 and word not in self.stopwords:
+                words.append(word)
+        return words
+
+    def _get_words_count(self, text):
+        return len(self._get_words(text))
 
 
 class NewTextHandler(ContentHandler):
