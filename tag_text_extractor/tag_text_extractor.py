@@ -1,9 +1,9 @@
 # -*- coding:utf-8 -*-
-import re
 import logging
+import re
+from cStringIO import StringIO
 from xml import sax
 from xml.sax.xmlreader import InputSource
-from cStringIO import StringIO
 
 from lxml import etree
 
@@ -40,7 +40,15 @@ def extract_tag_texts(html_content, handler=TextHandler):
 
 
 def clean_html(html_content):
-    html = html_content
+    try:
+        parser = etree.HTMLParser(recover=True, encoding='UTF-8')
+        tree = etree.parse(StringIO(html_content), parser)
+        root = tree.getroot()
+        if root is not None:
+            html = etree.tostring(root)
+    except Exception as e:
+        logging.warning(e, exc_info=1)
+        html = ""
     html = re.sub(u'<!DOCTYPE[^>]*>(?isu)', '', html)
     shtml = re.split(u'<html[^>]*>', html)
     html = '<html>' + shtml[1] if len(shtml) == 2 else html
