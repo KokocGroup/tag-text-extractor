@@ -103,7 +103,7 @@ class TextHandler(ContentHandler):
         self.add_content_to_result(tag, content)
 
     def add_content_to_result(self, tag, content):
-        if tag in self.result and content:
+        if tag in self.result and content and len(content) <= 50:
             self.result[tag]['texts'].append(content)
             self.result[tag]['word_count'] += self._get_words_count(content)
 
