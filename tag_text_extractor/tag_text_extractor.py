@@ -40,6 +40,7 @@ def extract_tag_texts(html_content, handler=TextHandler):
 
 
 def clean_html(html_content):
+    html_content = re.sub(ur"<\?xml[^>]*>", "", html_content)
     try:
         parser = etree.HTMLParser(recover=True, encoding='UTF-8')
         tree = etree.parse(StringIO(html_content), parser)
