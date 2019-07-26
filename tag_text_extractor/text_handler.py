@@ -110,8 +110,8 @@ class TextHandler(ContentHandler):
                 self.result[tag]['word_count'] += len(words)
 
     def _get_words(self, text):
-        text = unicode(text.lower())
-        text = self.non_alpha_num_re.sub(' ', text)
+        # text = unicode(text.lower())
+        # text = self.non_alpha_num_re.sub(' ', text)
         text = self.replace_e_re.sub(u'е', text)
 
         words = []
